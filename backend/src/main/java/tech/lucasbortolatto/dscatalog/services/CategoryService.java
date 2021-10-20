@@ -2,6 +2,7 @@ package tech.lucasbortolatto.dscatalog.services;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import tech.lucasbortolatto.dscatalog.entities.Category;
 import tech.lucasbortolatto.dscatalog.repositories.CategoryRepository;
 
@@ -13,6 +14,7 @@ public class CategoryService {
     @Autowired
     CategoryRepository categoryRepository;
 
+    @Transactional(readOnly = true)
     public List<Category> findAll() {
         return categoryRepository.findAll();
     }
