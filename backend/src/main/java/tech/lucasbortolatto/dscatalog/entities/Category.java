@@ -2,6 +2,7 @@ package tech.lucasbortolatto.dscatalog.entities;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.Objects;
 
 @Entity
@@ -13,6 +14,14 @@ public class Category implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
+
+    // Com a anotação abaixo, a coluna salva sempre em UTC (neutro),
+    // os clients front que devem tratar o timezone desejado (como o h2-console faz por exemplo)
+    @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
+    private Instant createdAt;
+
+    @Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
+    private Instant updatedAt;
 
     public Category() {
     }
@@ -36,6 +45,26 @@ public class Category implements Serializable {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    //sempre antes de criar o registro
+    @PrePersist
+    public void prePersist() {
+        createdAt = Instant.now();
+    }
+
+    //sempre antes de atualizar o registro
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = Instant.now();
     }
 
     @Override
