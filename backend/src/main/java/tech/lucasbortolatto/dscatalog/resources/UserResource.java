@@ -10,6 +10,7 @@ import tech.lucasbortolatto.dscatalog.dto.UserDTO;
 import tech.lucasbortolatto.dscatalog.dto.UserInsertDTO;
 import tech.lucasbortolatto.dscatalog.services.UserService;
 
+import javax.validation.Valid;
 import java.net.URI;
 
 @RestController
@@ -30,14 +31,14 @@ public class UserResource {
     }
 
     @PostMapping
-    public ResponseEntity<UserDTO> insert(@RequestBody UserInsertDTO dto) {
+    public ResponseEntity<UserDTO> insert(@Valid @RequestBody UserInsertDTO dto) {
         UserDTO userDTO = userService.insert(dto);
         URI uri = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(userDTO.getId()).toUri();
         return ResponseEntity.created(uri).body(userDTO);
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<UserDTO> update(@PathVariable Long id, @RequestBody UserDTO dto) {
+    public ResponseEntity<UserDTO> update(@PathVariable Long id, @Valid @RequestBody UserDTO dto) {
         dto = userService.update(id, dto);
         return ResponseEntity.ok(dto);
     }

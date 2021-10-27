@@ -2,6 +2,9 @@ package tech.lucasbortolatto.dscatalog.dto;
 
 import tech.lucasbortolatto.dscatalog.entities.User;
 
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
@@ -10,8 +13,17 @@ public class UserDTO implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private Long id;
+
+    // Anotações de validação, disponibilizadas pela dependência spring-boot-starter-validation
+    // são da biblioteca javax, usamos no DTO porque é ele que vai vir da camada web com as infos do usuário
+    // https://docs.jboss.org/hibernate/beanvalidation/spec/2.0/api/overview-summary.html
+    // pra ver as disponiveis da pra digitar em cima da classe import javax.validation.constraints. e ctrl + espaço, ir lendo
+    // pra essas validações serem usadas de fato nas requests, tem que anotar o objeto parâmetro do método do controller c/ @Valid
+    @NotBlank(message = "Campo obrigatório")
+    @Size(min = 5, max = 60, message = "Nome deve ter entre 5 e 60 caracteres")
     private String firstName;
     private String lastName;
+    @Email(message = "E-mail inválido")
     private String email;
 
     Set<RoleDTO> roles = new HashSet<>();
