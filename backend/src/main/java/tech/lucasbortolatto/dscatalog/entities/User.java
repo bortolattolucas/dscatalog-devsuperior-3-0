@@ -16,10 +16,16 @@ public class User implements Serializable {
     private Long id;
     private String firstName;
     private String lastName;
+
+    // para não duplicar o e-mail
+    @Column(unique = true)
     private String email;
     private String password;
 
-    @ManyToMany
+    // Como existem poucos ROLES, nao vai ter problema carregar junto com o user
+    // E isso vai ajudar muito ao autenticar
+    // Entao, o manytomany vai ser eager aqui, pra ja carregar suas roles ao carregar o user
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "tb_user_role",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
