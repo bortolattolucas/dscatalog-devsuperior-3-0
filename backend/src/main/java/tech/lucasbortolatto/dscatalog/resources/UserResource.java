@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import tech.lucasbortolatto.dscatalog.dto.UserDTO;
 import tech.lucasbortolatto.dscatalog.dto.UserInsertDTO;
+import tech.lucasbortolatto.dscatalog.dto.UserUpdateDTO;
 import tech.lucasbortolatto.dscatalog.services.UserService;
 
 import javax.validation.Valid;
@@ -38,9 +39,9 @@ public class UserResource {
     }
 
     @PutMapping(value = "/{id}")
-    public ResponseEntity<UserDTO> update(@PathVariable Long id, @Valid @RequestBody UserDTO dto) {
-        dto = userService.update(id, dto);
-        return ResponseEntity.ok(dto);
+    public ResponseEntity<UserDTO> update(@PathVariable Long id, @Valid @RequestBody UserUpdateDTO dto) {
+        UserDTO newDto = userService.update(id, dto);
+        return ResponseEntity.ok(newDto);
     }
 
     @DeleteMapping(value = "/{id}")
