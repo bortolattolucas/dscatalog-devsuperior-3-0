@@ -31,6 +31,8 @@ public class ProductResource {
         return ResponseEntity.ok(productService.findById(id));
     }
 
+    // com essa anotacao @Valid, o service nem é chamado, o erro ja dispara na hra que recebe o argumento DTO
+    // esses sao os casos onde apenas o valor do argumento é levado em consideração para a validação
     @PostMapping
     public ResponseEntity<ProductDTO> insert(@Valid @RequestBody ProductDTO dto) {
         dto = productService.insert(dto);
