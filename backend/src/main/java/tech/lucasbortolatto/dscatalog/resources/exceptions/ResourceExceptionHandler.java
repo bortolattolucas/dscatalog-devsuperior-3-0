@@ -2,6 +2,8 @@ package tech.lucasbortolatto.dscatalog.resources.exceptions;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import tech.lucasbortolatto.dscatalog.services.exceptions.DatabaseException;
@@ -33,6 +35,25 @@ public class ResourceExceptionHandler {
         err.setError("Database exception");
         err.setMessage(e.getMessage());
         err.setPath(request.getRequestURI());
+        return ResponseEntity.status(err.getStatus()).body(err);
+    }
+
+    // esse nao retorna um standardError pq precisa de um objeto mais complexo
+    // onde tem uma lista das validações que deram problema na request
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ValidationError> validation(MethodArgumentNotValidException e, HttpServletRequest request) {
+        ValidationError err = new ValidationError();
+        err.setTimestamp(Instant.now());
+        err.setStatus(HttpStatus.UNPROCESSABLE_ENTITY.value());
+        err.setError("Validation exception");
+        err.setMessage(e.getMessage());
+        err.setPath(request.getRequestURI());
+
+        // pegando os erros da MethodArgumentNotValidException e estruturando no objeto proprio de validationError
+        for (FieldError f : e.getBindingResult().getFieldErrors()) {
+            err.addError(f.getField(), f.getDefaultMessage());
+        }
+
         return ResponseEntity.status(err.getStatus()).body(err);
     }
 }
