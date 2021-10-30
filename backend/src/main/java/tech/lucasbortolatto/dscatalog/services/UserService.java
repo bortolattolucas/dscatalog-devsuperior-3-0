@@ -1,10 +1,15 @@
 package tech.lucasbortolatto.dscatalog.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +29,8 @@ import java.util.Optional;
 
 // cria um bean (componente) com instancia gerenciada pelo spring e injeção com autowired
 @Service
-public class UserService {
+// esse service é do User e tbm implementa pra ser do UserDetailsService, para o authorization server
+public class UserService implements UserDetailsService {
 
     // bean criado na propria interface repository, assim como esse service
     @Autowired
@@ -37,6 +43,10 @@ public class UserService {
     // bean criado na config
     @Autowired
     BCryptPasswordEncoder passwordEncoder;
+
+    // instancia estática só pra criar logs no console dos eventos dessa classe
+    // criada pra auxiliar pra ver se ta funcionando funcoes do spring security
+    private static Logger logger = LoggerFactory.getLogger(UserService.class);
 
     @Transactional(readOnly = true)
     public Page<UserDTO> findAllPaged(Pageable pageable) {
@@ -93,5 +103,25 @@ public class UserService {
             Role role = roleRepository.getOne(roleDTO.getId());
             entity.getRoles().add(role);
         }
+    }
+
+    // método da interface UserDetailsService para o authorization server
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        // como o atributo do username é o email, to chamando o metodo do repository que busca por email
+        User user = userRepository.findByEmail(username);
+
+        // se o usuário não foi encontrado, tem que disparar a exception indicada pelo método da interface
+        // pra respeitar o processo de autenticacao do spring security
+        // e exibir no console com logger pra auxiliar o estudo
+        if (user == null) {
+            logger.error("User not found: " + username);
+            throw new UsernameNotFoundException("Email not found");
+        }
+
+        // exibe no console que o usuario foi encontrado pra auxiliar o processo dos estudos
+        logger.info("User found: " + username);
+        // como a nossa classe User implementa UserDetails, retorna-se o usuario encontrado
+        return user;
     }
 }
