@@ -10,8 +10,12 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.A
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+import tech.lucasbortolatto.dscatalog.components.JwtTokenEnhancer;
+
+import java.util.Arrays;
 
 @Configuration
 // Anotação que informa que essa classe de configuração vai representar o Authorization server do checklist
@@ -46,6 +50,10 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Autowired
     private AuthenticationManager authenticationManager;
 
+    // bean do "aprimorador" do JWT
+    @Autowired
+    private JwtTokenEnhancer jwtTokenEnhancer;
+
     // configuração sobre as credenciais do usuário
     @Override
     public void configure(AuthorizationServerSecurityConfigurer security) throws Exception {
@@ -66,8 +74,13 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     // configuração dos endpoints, sobre quem vai autorizar em qual formato de token
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints) throws Exception {
+        // Cria um objeto de cadeia de aprimoramento do JWT, uninco o converter e o enhancer na cadeia
+        TokenEnhancerChain chain = new TokenEnhancerChain();
+        chain.setTokenEnhancers(Arrays.asList(jwtAccessTokenConverter, jwtTokenEnhancer));
+
         endpoints.authenticationManager(authenticationManager)
                 .tokenStore(jwtTokenStore)
-                .accessTokenConverter(jwtAccessTokenConverter);
+                .accessTokenConverter(jwtAccessTokenConverter)
+                .tokenEnhancer(chain); // seta a cadeia de aprimoramento criada para os JWT usados
     }
 }
