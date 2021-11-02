@@ -1,6 +1,7 @@
 package tech.lucasbortolatto.dscatalog.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -16,6 +17,18 @@ import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
 // Anotação que informa que essa classe de configuração vai representar o Authorization server do checklist
 @EnableAuthorizationServer
 public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdapter {
+
+    // pega o valor da variável de ambiente automaticamente
+    @Value("${security.oauth2.client.client-id}")
+    private String clientId;
+
+    // pega o valor da variável de ambiente automaticamente
+    @Value("${security.oauth2.client.client-secret}")
+    private String clientSecret;
+
+    // pega o valor da variável de ambiente automaticamente
+    @Value("${jwt.duration}")
+    private Integer jwtDuration;
 
     // bean do AppConfig
     @Autowired
@@ -43,11 +56,11 @@ public class AuthorizationServerConfig extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(ClientDetailsServiceConfigurer clients) throws Exception {
         clients.inMemory()
-                .withClient("dscatalog")
-                .secret(bCryptPasswordEncoder.encode("dscatalog123"))
+                .withClient(clientId)
+                .secret(bCryptPasswordEncoder.encode(clientSecret))
                 .scopes("read", "write")
                 .authorizedGrantTypes("password") // tem varios tipos no oauth2
-                .accessTokenValiditySeconds(86400); //token dura 1 dia
+                .accessTokenValiditySeconds(jwtDuration); //token dura 1 dia por padrao do properties
     }
 
     // configuração dos endpoints, sobre quem vai autorizar em qual formato de token
