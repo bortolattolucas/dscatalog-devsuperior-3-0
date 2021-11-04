@@ -20,4 +20,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
             "AND " +
             "(LOWER(obj.name) LIKE LOWER(CONCAT('%', :name, '%')))") //se nao tiver nome dai traz todos automaticamente
     Page<Product> find(List<Category> categories, String name, Pageable pageable);
+
+    // consulta auxiliar de produtos, pra carregar suas categorias e evitar o problema de N+1
+    @Query("SELECT obj FROM Product obj " +
+            "JOIN FETCH obj.categories " + // join fetch já carrega os objetos relacionados, porém só funciona com lista
+            "WHERE obj IN :products")
+    List<Product> findProductsWithCategories(List<Product> products);
 }

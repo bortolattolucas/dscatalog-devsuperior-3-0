@@ -33,7 +33,15 @@ public class ProductService {
     public Page<ProductDTO> findAllPaged(Long categoryId, String name, Pageable pageable) {
         // se não foi passado categoria, e o valor é 0 consequentemente, o objeto abaixo fica nulo
         List<Category> categories = (categoryId == 0) ? null : List.of(categoryRepository.getOne(categoryId));
-        return productRepository.find(categories, name, pageable).map(ProductDTO::new);
+        // faz a consulta da página
+        Page<Product> page = productRepository.find(categories, name, pageable);
+        // faz uma consulta pra evitar o N+1, mesmo que nao atribuindo a ngm
+        // só pra manter as relações mapeadas em memoria e nao consultar de novo ao rodar o getCategories()
+        productRepository.findProductsWithCategories(page.getContent());
+        // retorna a pagina com as categorias, sem dar o problema de N+1 pq os relacionamentos ja estao mapeados
+        // obs: o N+1 faria uma consulta adicional pra cada produto encontrado pra buscar suas categorias
+        // e dessa forma é feita somente uma consulta a mais pra evitar todas essas possiveis consultas adicionais
+        return page.map(x -> new ProductDTO(x, x.getCategories()));
     }
 
     @Transactional(readOnly = true)
