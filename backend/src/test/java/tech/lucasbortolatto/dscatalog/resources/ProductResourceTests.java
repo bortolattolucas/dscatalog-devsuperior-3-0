@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.http.MediaType;
@@ -14,6 +15,7 @@ import tech.lucasbortolatto.dscatalog.services.ProductService;
 import tech.lucasbortolatto.dscatalog.services.exceptions.DatabaseException;
 import tech.lucasbortolatto.dscatalog.services.exceptions.ResourceNotFoundException;
 import tech.lucasbortolatto.dscatalog.tests.Factory;
+import tech.lucasbortolatto.dscatalog.tests.TokenUtil;
 
 import java.util.List;
 
@@ -27,8 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // Carrega apenas o contexto da camada web, sem componentes, services, etc, propria para teste de unidade de controlador
 // By default, tests annotated with @WebMvcTest will also auto-configure Spring Security and MockMvc
 // https://docs.spring.io/spring-boot/docs/current/api/org/springframework/boot/test/autoconfigure/web/servlet/WebMvcTest.html
-@WebMvcTest(ProductResource.class)
+// @WebMvcTest(ProductResource.class) -> anotação comentada pela explicação abaixo
+// removido porque agora com security precisa carregar o contexto, mas deixado aqui por documentação de conhecimento
+
+// anotações adicionadas após necessidade por conta do security (precisar das instancias dos componentes do contexto)
+@SpringBootTest
+@AutoConfigureMockMvc
 public class ProductResourceTests {
+
+    @Autowired
+    private TokenUtil tokenUtil;
 
     // Objeto pra fazer requests
     @Autowired
@@ -50,18 +60,21 @@ public class ProductResourceTests {
     private long dependentId;
     private ProductDTO productDTO;
     private PageImpl<ProductDTO> page;
+    private String username;
+    private String password;
 
     @BeforeEach
     void setUp() {
         existingId = 1L;
         nonExistingId = 2L;
         dependentId = 3L;
+        username = "maria@gmail.com";
+        password = "123456";
 
         productDTO = Factory.createProductDTO();
         page = new PageImpl<>(List.of(productDTO));
 
-        // ajuste temporário após capítulo do banco de dados, esse categoryId e name ai nao ta conferido
-        when(productService.findAllPaged(1L, "name", any())).thenReturn(page);
+        when(productService.findAllPaged(eq(0L), eq(""), any())).thenReturn(page);
 
         when(productService.findById(existingId)).thenReturn(productDTO);
         when(productService.findById(nonExistingId)).thenThrow(ResourceNotFoundException.class);
@@ -102,7 +115,9 @@ public class ProductResourceTests {
 
     @Test
     public void insertShouldReturnProductDTOCreated() throws Exception {
+        String accessToken = tokenUtil.obtainAccessToken(mockMvc, username, password);
         mockMvc.perform(post("/products")
+                        .header("Authorization", "Bearer " + accessToken)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(productDTO))) // tbm da pra simplificar assim ao inves de criar um obj
@@ -114,9 +129,11 @@ public class ProductResourceTests {
 
     @Test
     public void updateShouldReturnProductDTOWhenIdExists() throws Exception {
+        String accessToken = tokenUtil.obtainAccessToken(mockMvc, username, password);
         String jsonBody = objectMapper.writeValueAsString(productDTO);
 
         mockMvc.perform(put("/products/{id}", existingId)
+                        .header("Authorization", "Bearer " + accessToken)
                         .accept(MediaType.APPLICATION_JSON)      // resposta que aceita
                         .contentType(MediaType.APPLICATION_JSON) // corpo que manda
                         .content(jsonBody))                      // objeto no corpo
@@ -128,9 +145,11 @@ public class ProductResourceTests {
 
     @Test
     public void updateShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
+        String accessToken = tokenUtil.obtainAccessToken(mockMvc, username, password);
         String jsonBody = objectMapper.writeValueAsString(productDTO);
 
         mockMvc.perform(put("/products/{id}", nonExistingId)
+                        .header("Authorization", "Bearer " + accessToken)
                         .accept(MediaType.APPLICATION_JSON)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonBody))
@@ -139,13 +158,19 @@ public class ProductResourceTests {
 
     @Test
     public void deleteShouldReturnNoContentWhenIdExists() throws Exception {
-        mockMvc.perform(delete("/products/{id}", existingId))
+        String accessToken = tokenUtil.obtainAccessToken(mockMvc, username, password);
+
+        mockMvc.perform(delete("/products/{id}", existingId)
+                        .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNoContent());
     }
 
     @Test
     public void deleteShouldReturnNotFoundWhenIdDoesNotExist() throws Exception {
-        mockMvc.perform(delete("/products/{id}", nonExistingId))
+        String accessToken = tokenUtil.obtainAccessToken(mockMvc, username, password);
+
+        mockMvc.perform(delete("/products/{id}", nonExistingId)
+                        .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isNotFound());
     }
 }

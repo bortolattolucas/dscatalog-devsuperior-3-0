@@ -92,6 +92,8 @@ public class ProductServiceTests {
         Mockito.when(productRepositoryMock.findById(existingId)).thenReturn(Optional.of(product));
         Mockito.when(productRepositoryMock.findById(nonExistingId)).thenReturn(Optional.empty());
 
+        Mockito.when(productRepositoryMock.find(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any())).thenReturn(page);
+
         Mockito.when(productRepositoryMock.getOne(existingId)).thenReturn(product);
         Mockito.when(productRepositoryMock.getOne(nonExistingId)).thenThrow(EntityNotFoundException.class);
 
@@ -127,11 +129,10 @@ public class ProductServiceTests {
     public void findAllPagedShouldReturnPage() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        // ajuste temporário após capítulo do banco de dados, esse categoryId e name ai nao ta conferido
-        Page<ProductDTO> result = productService.findAllPaged(1L, "name", pageable);
+        Page<ProductDTO> result = productService.findAllPaged(0L, "", pageable);
 
         Assertions.assertNotNull(result);
-        Mockito.verify(productRepositoryMock, Mockito.times(1)).findAll(pageable);
+        Mockito.verify(productRepositoryMock, Mockito.times(1)).find(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any());
     }
 
     @Test

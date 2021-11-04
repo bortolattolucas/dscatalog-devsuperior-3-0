@@ -56,8 +56,7 @@ public class ProductServiceIntegrationTests {
     public void findAllPagedShouldReturnPageWhenPage0Size10() {
         PageRequest pageRequest = PageRequest.of(0, 10);
 
-        // ajuste temporário após capítulo do banco de dados, esse categoryId e name ai nao ta conferido
-        Page<ProductDTO> result = productService.findAllPaged(1L, "name", pageRequest);
+        Page<ProductDTO> result = productService.findAllPaged(0L, "", pageRequest);
 
         assertFalse(result.isEmpty());
         assertEquals(0, result.getNumber());
@@ -69,8 +68,7 @@ public class ProductServiceIntegrationTests {
     public void findAllPagedShouldReturnEmptyPageWhenPageDoesNotExist() {
         PageRequest pageRequest = PageRequest.of(50, 10);
 
-        // ajuste temporário após capítulo do banco de dados, esse categoryId e name ai nao ta conferido
-        Page<ProductDTO> result = productService.findAllPaged(1L, "name", pageRequest);
+        Page<ProductDTO> result = productService.findAllPaged(0L, "", pageRequest);
 
         assertTrue(result.isEmpty());
     }
@@ -79,8 +77,7 @@ public class ProductServiceIntegrationTests {
     public void findAllPagedShouldReturnSortedPageWhenSortByName() {
         PageRequest pageRequest = PageRequest.of(0, 10, Sort.by("name"));
 
-        // ajuste temporário após capítulo do banco de dados, esse categoryId e name ai nao ta conferido
-        Page<ProductDTO> result = productService.findAllPaged(1L, "name", pageRequest);
+        Page<ProductDTO> result = productService.findAllPaged(0L, "", pageRequest);
 
         assertFalse(result.isEmpty());
         assertEquals("Macbook Pro", result.getContent().get(0).getName());
