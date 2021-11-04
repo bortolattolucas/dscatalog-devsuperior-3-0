@@ -21,8 +21,12 @@ public class ProductResource {
 
     //RequestParam: opcional na request
     @GetMapping
-    public ResponseEntity<Page<ProductDTO>> findAll(Pageable pageable) {
-        return ResponseEntity.ok(productService.findAllPaged(pageable));
+    // como no banco relacional o id começa por 1, se informar 0 traz todos sem problema, por isso esse é o id default
+    public ResponseEntity<Page<ProductDTO>> findAll(@RequestParam(value = "categoryId", defaultValue = "0") Long categoryId,
+                                                    @RequestParam(value = "name", defaultValue = "") String name,
+                                                    Pageable pageable) {
+        // a função trim() de um string remove os espaços em branco antes e depois da frase ou palavra
+        return ResponseEntity.ok(productService.findAllPaged(categoryId, name.trim(), pageable));
     }
 
     //PathVariable: obrigatório na request

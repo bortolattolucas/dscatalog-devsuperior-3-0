@@ -60,7 +60,8 @@ public class ProductResourceTests {
         productDTO = Factory.createProductDTO();
         page = new PageImpl<>(List.of(productDTO));
 
-        when(productService.findAllPaged(any())).thenReturn(page);
+        // ajuste temporário após capítulo do banco de dados, esse categoryId e name ai nao ta conferido
+        when(productService.findAllPaged(1L, "name", any())).thenReturn(page);
 
         when(productService.findById(existingId)).thenReturn(productDTO);
         when(productService.findById(nonExistingId)).thenThrow(ResourceNotFoundException.class);

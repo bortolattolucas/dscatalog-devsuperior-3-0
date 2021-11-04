@@ -127,7 +127,8 @@ public class ProductServiceTests {
     public void findAllPagedShouldReturnPage() {
         Pageable pageable = PageRequest.of(0, 10);
 
-        Page<ProductDTO> result = productService.findAllPaged(pageable);
+        // ajuste temporário após capítulo do banco de dados, esse categoryId e name ai nao ta conferido
+        Page<ProductDTO> result = productService.findAllPaged(1L, "name", pageable);
 
         Assertions.assertNotNull(result);
         Mockito.verify(productRepositoryMock, Mockito.times(1)).findAll(pageable);

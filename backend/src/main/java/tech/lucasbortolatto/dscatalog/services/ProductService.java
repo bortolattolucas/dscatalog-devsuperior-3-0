@@ -17,6 +17,7 @@ import tech.lucasbortolatto.dscatalog.services.exceptions.DatabaseException;
 import tech.lucasbortolatto.dscatalog.services.exceptions.ResourceNotFoundException;
 
 import javax.persistence.EntityNotFoundException;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -29,8 +30,10 @@ public class ProductService {
     CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
-    public Page<ProductDTO> findAllPaged(Pageable pageable) {
-        return productRepository.findAll(pageable).map(ProductDTO::new);
+    public Page<ProductDTO> findAllPaged(Long categoryId, String name, Pageable pageable) {
+        // se não foi passado categoria, e o valor é 0 consequentemente, o objeto abaixo fica nulo
+        List<Category> categories = (categoryId == 0) ? null : List.of(categoryRepository.getOne(categoryId));
+        return productRepository.find(categories, name, pageable).map(ProductDTO::new);
     }
 
     @Transactional(readOnly = true)
