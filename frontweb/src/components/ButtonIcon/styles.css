@@ -3,6 +3,7 @@
 }
 
 .btn-container button {
+    width: calc(100% - 50px);
     border-radius: 10px 0 0 10px;
 }
 
