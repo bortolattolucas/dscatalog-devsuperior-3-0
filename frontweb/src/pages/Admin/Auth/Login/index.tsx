@@ -3,7 +3,9 @@ import ButtonIcon from 'components/ButtonIcon';
 
 import './styles.css';
 import {useForm} from "react-hook-form";
-import {requestBackendLogin, saveAuthData} from "../../../../util/requests";
+import {getTokenData, isAuthenticated, requestBackendLogin, saveAuthData} from "../../../../util/requests";
+import {useContext} from "react";
+import {AuthContext} from "../../../../AuthContext";
 
 type FormData = {
     username: string;
@@ -11,6 +13,8 @@ type FormData = {
 }
 
 const Login = () => {
+
+    const {setAuthContextData} = useContext(AuthContext);
 
     const {register, handleSubmit, formState: {errors}} = useForm<FormData>();
 
@@ -20,10 +24,15 @@ const Login = () => {
         requestBackendLogin(formData)
             .then(response => {
                 saveAuthData(response.data);
+
+                setAuthContextData({
+                    authenticated: isAuthenticated(),
+                    tokenData: getTokenData()
+                });
+
                 history.push('/admin');
             })
             .catch(error => {
-                console.log('deu pau', error);
             });
     };
 
