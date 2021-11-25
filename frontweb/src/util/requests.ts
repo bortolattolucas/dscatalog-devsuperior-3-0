@@ -5,7 +5,7 @@ import jwtDecode from 'jwt-decode';
 
 type Role = 'ROLE_OPERATOR' | 'ROLE_ADMIN';
 
-type TokenData = {
+export type TokenData = {
     exp: number;
     username: string;
     authorities: Role[];
@@ -62,6 +62,10 @@ export const saveAuthData = (obj: LoginResponse) => {
 
 export const getAuthData = () => {
     return JSON.parse(localStorage.getItem(tokenKey) ?? "{}") as LoginResponse;
+}
+
+export const removeAuthData = () => {
+    localStorage.removeItem(tokenKey);
 }
 
 // Add a request interceptor
