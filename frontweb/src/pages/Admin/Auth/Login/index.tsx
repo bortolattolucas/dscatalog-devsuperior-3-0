@@ -1,9 +1,9 @@
-import {Link} from 'react-router-dom';
+import {Link, useHistory} from 'react-router-dom';
 import ButtonIcon from 'components/ButtonIcon';
 
 import './styles.css';
 import {useForm} from "react-hook-form";
-import {getAuthData, requestBackendLogin, saveAuthData} from "../../../../util/requests";
+import {requestBackendLogin, saveAuthData} from "../../../../util/requests";
 
 type FormData = {
     username: string;
@@ -14,11 +14,13 @@ const Login = () => {
 
     const {register, handleSubmit, formState: {errors}} = useForm<FormData>();
 
+    const history = useHistory();
+
     const onSubmit = (formData: FormData) => {
         requestBackendLogin(formData)
             .then(response => {
                 saveAuthData(response.data);
-                const token = getAuthData().access_token;
+                history.push('/admin');
             })
             .catch(error => {
                 console.log('deu pau', error);
