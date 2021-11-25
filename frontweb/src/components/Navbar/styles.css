@@ -26,3 +26,34 @@
     min-height: 70px;
     padding-left: 40px;
 }
+
+.nav-login-logout {
+    display: none;
+}
+
+.nav-username {
+    display: none;
+}
+
+@media (min-width: 768px) {
+
+    .nav-login-logout {
+        display: unset;
+        color: #FFFFFF;
+        margin-right: 15px;
+    }
+
+}
+
+@media (min-width: 992px) {
+
+    .nav-login-logout {
+        margin-right: 40px;
+    }
+
+    .nav-username {
+        display: unset;
+        margin-right: 20px;
+    }
+
+}
