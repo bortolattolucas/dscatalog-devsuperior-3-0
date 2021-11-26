@@ -7,7 +7,7 @@ type Role = 'ROLE_OPERATOR' | 'ROLE_ADMIN';
 
 export type TokenData = {
     exp: number;
-    username: string;
+    user_name: string;
     authorities: Role[];
 }
 
