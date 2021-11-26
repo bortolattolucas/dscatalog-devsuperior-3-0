@@ -91,7 +91,7 @@ axios.interceptors.response.use(function (response) {
     return Promise.reject(error);
 });
 
-export const getTokenData = () : TokenData | undefined => {
+export const getTokenData = (): TokenData | undefined => {
     try {
         return jwtDecode(getAuthData().access_token) as TokenData;
     } catch (error) {
@@ -99,10 +99,23 @@ export const getTokenData = () : TokenData | undefined => {
     }
 }
 
-export const isAuthenticated = () : boolean => {
+export const isAuthenticated = (): boolean => {
     const tokenData = getTokenData();
 
     // retorna true ou false com o operador abaixo, evitando undefined
     // multiplica por 1000 por conta dos milisegundos vs segundos do JS e do token
     return !!(tokenData && tokenData.exp * 1000 > Date.now());
+}
+
+export const hasAnyRoles = (roles: Role[]): boolean => {
+    if (roles.length === 0) {
+        return true;
+    }
+
+    const tokenData = getTokenData();
+    if (tokenData !== undefined) {
+        return roles.some(role => tokenData.authorities.includes(role));
+    }
+
+    return false;
 }
