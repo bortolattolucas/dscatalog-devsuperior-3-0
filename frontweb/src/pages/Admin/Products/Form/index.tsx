@@ -1,30 +1,70 @@
 import './styles.css';
-import {useForm} from "react-hook-form";
+import {Controller, useForm} from "react-hook-form";
 import {Product} from "../../../../types/product";
 import {requestBackend} from "../../../../util/requests";
 import {AxiosRequestConfig} from "axios";
-import {useHistory} from "react-router-dom";
+import {useHistory, useParams} from "react-router-dom";
+import {useEffect, useState} from "react";
+import Select from 'react-select';
+import {Category} from "../../../../types/category";
+import CurrencyInput from "react-currency-input-field";
+import {toast} from 'react-toastify';
+
+type UrlParams = {
+    productId: string;
+}
 
 const Form = () => {
 
+    const {productId} = useParams<UrlParams>();
+
+    const isEditing = productId !== 'create';
+
     const history = useHistory();
 
-    const {register, handleSubmit, formState: {errors}} = useForm<Product>();
+    const [selectCategories, setSelectCategories] = useState<Category[]>([]);
+
+    const {register, handleSubmit, formState: {errors}, setValue, control} = useForm<Product>();
+
+    useEffect(() => {
+        requestBackend({url: '/categories', withCredentials: true})
+            .then(response => {
+                setSelectCategories(response.data.content)
+            })
+    }, [])
+
+    useEffect(() => {
+        if (isEditing) {
+            requestBackend({url: `/products/${productId}`, withCredentials: true})
+                .then((response) => {
+                    const product = response.data as Product;
+                    setValue('name', product.name);
+                    setValue('price', product.price);
+                    setValue('description', product.description);
+                    setValue('imgUrl', product.imgUrl);
+                    setValue('categories', product.categories);
+                })
+        }
+    }, [isEditing, productId, setValue]);
 
     const onSubmit = (formData: Product) => {
 
-        const data = {...formData, categories: [{id: 1}]};
+        const data = {...formData, price: String(formData.price).replace(',', '.')};
 
         const config: AxiosRequestConfig = {
-            method: 'POST',
-            url: '/products',
+            method: isEditing ? 'PUT' : 'POST',
+            url: isEditing ? `/products/${productId}` : '/products',
             data,
             withCredentials: true
         };
 
         requestBackend(config)
             .then(response => {
+                toast.info('Produto cadastrado com sucesso');
                 history.push("/admin/products");
+            })
+            .catch(() => {
+                toast.error("Erro ao cadastrar o produto");
             });
     };
 
@@ -53,17 +93,62 @@ const Form = () => {
                                 <div className="invalid-feedback d-block">{errors.name?.message}</div>
                             </div>
 
+
                             <div className="margin-bottom-30">
-                                <input
-                                    {...register("price", {
-                                        required: 'Campo obrigatório'
-                                    })}
-                                    type="text"
-                                    className={`form-control base-input ${errors.price ? 'is-invalid' : ''}`}
-                                    placeholder="Preço"
+                                <Controller name="categories"
+                                            rules={{required: true}}
+                                            control={control}
+                                            render={({field}) => (
+                                                <Select {...field}
+                                                        options={selectCategories}
+                                                        classNamePrefix="product-crud-select"
+                                                        isMulti
+                                                        getOptionLabel={(cat: Category) => cat.name}
+                                                        getOptionValue={(cat: Category) => String(cat.id)}
+                                                        placeholder='Categorias...'
+                                                />
+                                            )}
+                                />
+                                {
+                                    errors.categories &&
+                                    <div className="invalid-feedback d-block">Campo obrigatório</div>
+                                }
+                            </div>
+
+
+                            <div className="margin-bottom-30">
+                                <Controller
                                     name="price"
+                                    rules={{required: true}}
+                                    control={control}
+                                    render={({field}) => (
+                                        <CurrencyInput
+                                            placeholder="Preço"
+                                            className={`form-control base-input ${errors.price ? 'is-invalid' : ''}`}
+                                            disableGroupSeparators={true}
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                        />
+                                    )}
                                 />
                                 <div className="invalid-feedback d-block">{errors.price?.message}</div>
+                            </div>
+
+                            <div className="margin-bottom-30">
+                                <input
+                                    {...register("imgUrl", {
+                                        required: 'Campo obrigatório',
+                                        pattern: {
+                                            value: /^(https?|chrome):\/\/[^\s$.?#].[^\s]*$/gm,
+                                            message: 'Deve ser uma URL válida'
+                                        }
+                                    })}
+                                    type="text"
+                                    className={`form-control base-input ${errors.imgUrl ? 'is-invalid' : ''}`}
+                                    placeholder="URL da imagem do produto"
+                                    name="imgUrl"
+                                />
+                                <div className="invalid-feedback d-block">{errors.imgUrl?.message}</div>
                             </div>
                         </div>
 
